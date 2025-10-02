@@ -1,0 +1,55 @@
+# Smart Start Script for Dishwasher
+# Sets dishwasher to start at 23:00 for daluren (off-peak energy savings)
+# Rounds UP to ensure it never starts before 23:00
+
+alias: Dishwasher Smart Start 23:00
+description: Start dishwasher at/after 23:00 for daluren energy savings
+sequence:
+  # Select the Auto 45-65° program first
+  - service: select.select_option
+    target:
+      entity_id: select.dishwasher_programs
+    data:
+      option: Dishcare.Dishwasher.Program.Auto2
+  
+  # Small delay to ensure program is set
+  - delay:
+      milliseconds: 500
+  
+  # Calculate time until 23:00 and set relative start time (always round UP)
+  - service: select.select_option
+    target:
+      entity_id: select.dishwasher_bsh_common_option_startinrelative
+    data:
+      option: >-
+        {% set now_time = now() %}
+        {% set target = now_time.replace(hour=23, minute=0, second=0, microsecond=0) %}
+        {% if now_time >= target %}
+          {# Already past 23:00, start immediately (or schedule for tomorrow if needed) #}
+          0:00
+        {% else %}
+          {# Calculate time until 23:00 #}
+          {% set diff = target - now_time %}
+          {% set total_minutes = (diff.total_seconds() / 60) | int %}
+          {% set hours = (total_minutes / 60) | int %}
+          {% set minutes = total_minutes % 60 %}
+          {# Round UP to next 30-min interval to ensure we never start before 23:00 #}
+          {% if minutes == 0 %}
+            {{ hours }}:00
+          {% elif minutes <= 30 %}
+            {{ hours }}:30
+          {% else %}
+            {{ hours + 1 }}:00
+          {% endif %}
+        {% endif %}
+  
+  # Small delay before starting
+  - delay:
+      milliseconds: 500
+  
+  # Press start button to activate delayed start
+  - service: button.press
+    target:
+      entity_id: button.dishwasher_start_pause
+
+mode: single

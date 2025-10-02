@@ -192,6 +192,25 @@ cards:
           target:
             entity_id: switch.dishwasher_power
       - type: template
+        icon: mdi:clock-start
+        icon_color: >-
+          {% if states('sensor.dishwasher_operation_state') == 'BSH.Common.EnumType.OperationState.DelayedStart' %}
+            cyan
+          {% else %}
+            grey
+          {% endif %}
+        content: >-
+          {% if states('sensor.dishwasher_operation_state') == 'BSH.Common.EnumType.OperationState.DelayedStart' %}
+            23:00
+          {% else %}
+            23:00
+          {% endif %}
+        tap_action:
+          action: call-service
+          service: script.turn_on
+          target:
+            entity_id: script.dishwasher_smart_start_23_00
+      - type: template
         content: >-
           {% set progress = states("sensor.dishwasher_program_progress") %}
           {% if progress in ['unavailable', 'unknown', 'none', ''] %}
