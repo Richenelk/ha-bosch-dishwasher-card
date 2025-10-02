@@ -1,0 +1,18 @@
+# Add this script to your Home Assistant configuration
+# Go to Settings > Automations & Scenes > Scripts > Add Script
+# Then paste this YAML in manual mode
+
+alias: Start Dishwasher Auto2
+sequence:
+  - service: select.select_option
+    target:
+      entity_id: select.dishwasher_programs
+    data:
+      option: Dishcare.Dishwasher.Program.Auto2
+  - delay:
+      milliseconds: 500
+  - service: button.press
+    target:
+      entity_id: button.dishwasher_start_pause
+mode: single
+icon: mdi:dishwasher

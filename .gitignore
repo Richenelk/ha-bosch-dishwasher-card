@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# VS Code
+.vscode/
+
+# Home Assistant secrets
+secrets.yaml
+*.secret
+
+# Backup files
+*.backup
+*~

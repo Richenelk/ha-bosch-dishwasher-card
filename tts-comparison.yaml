@@ -1,0 +1,36 @@
+# METHOD 1: Using media_player.play_media (RECOMMENDED for Sonos with volume control)
+# This is what's currently in tts-test-button.yaml
+type: custom:mushroom-template-card
+primary: TTS with Volume Control
+secondary: Uses media_player.play_media (Sonos recommended)
+icon: mdi:volume-high
+icon_color: blue
+tap_action:
+  action: call-service
+  service: media_player.play_media
+  target:
+    entity_id: media_player.living_room_beam
+  data:
+    announce: true
+    media_content_id: >
+      media-source://tts/google_translate_en_com?message=This uses the Sonos recommended method with volume control at 60 percent
+    media_content_type: music
+    extra:
+      volume: 60
+
+---
+
+# METHOD 2: Using tts.speak (No volume control)
+type: custom:mushroom-template-card
+primary: TTS Basic
+secondary: Uses tts.speak (no volume control)
+icon: mdi:volume-medium
+icon_color: green
+tap_action:
+  action: call-service
+  service: tts.speak
+  target:
+    entity_id: tts.google_translate_en_com
+  data:
+    media_player_entity_id: media_player.living_room_beam
+    message: "This uses basic TTS speak without volume control"

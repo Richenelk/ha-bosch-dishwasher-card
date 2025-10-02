@@ -1,0 +1,23 @@
+# Template sensor for Dishwasher Minutes Remaining
+# Add this to your Home Assistant configuration.yaml:
+# template: !include template.yaml
+
+# Start directly with a list of sensors.
+- sensor:
+    - name: "Dishwasher Minutes Remaining"
+      unique_id: dishwasher_minutes_remaining
+      icon: >
+        {% if states('sensor.dishwasher_remaining_program_time') not in ['unavailable', 'unknown'] and (states('sensor.dishwasher_remaining_program_time') | as_timestamp - now().timestamp()) / 60 > 0 %}
+          mdi:dishwasher-alert
+        {% else %}
+          mdi:dishwasher
+        {% endif %}
+      unit_of_measurement: "min"
+      state: >
+        {% set finish_time = states('sensor.dishwasher_remaining_program_time') | as_timestamp(default=0) %}
+        {% if finish_time > 0 %}
+          {% set remaining_minutes = ((finish_time - now().timestamp()) / 60) | round(0) %}
+          {{ [0, remaining_minutes] | max }}
+        {% else %}
+          0
+        {% endif %}

@@ -1,0 +1,214 @@
+type: custom:stack-in-card
+cards:
+  - type: custom:mushroom-template-card
+    primary: >-
+      {% set program_map = {
+        'Dishcare.Dishwasher.Program.Auto2': 'Auto 45-65°',
+        'Dishcare.Dishwasher.Program.Eco50': 'Eco 50°',
+        'Dishcare.Dishwasher.Program.Intensive70': 'Intensive 70°',
+        'Dishcare.Dishwasher.Program.Quick45': 'Quick 45°',
+        'Dishcare.Dishwasher.Program.PreRinse': 'Pre-Rinse',
+        'Dishcare.Dishwasher.Program.Silent': 'Silent',
+        'Dishcare.Dishwasher.Program.Normal65': 'Normal 65°'
+      } %}
+      {% set current_program = states("sensor.dishwasher_active_program") %}
+      {% set power_state = states("sensor.dishwasher_bsh_common_setting_powerstate") %}
+      {% if current_program in ['unavailable', 'unknown', 'none', ''] %}
+        {% if power_state == 'Off' or power_state == 'Standby' %}
+          Bosch Dishwasher
+        {% else %}
+          Bosch Dishwasher
+        {% endif %}
+      {% else %}
+        {{ program_map.get(current_program, current_program) }}
+      {% endif %}
+    secondary: >-
+      {% set minutes = states("sensor.dishwasher_minutes_remaining") | int(0) %}
+      {% set power_state = states("sensor.dishwasher_bsh_common_setting_powerstate") %}
+      {% set operation_state = states("sensor.dishwasher_operation_state") %}
+      {% if power_state == 'Off' %}
+        Off
+      {% elif operation_state == 'BSH.Common.EnumType.OperationState.Finished' %}
+        Cycle Complete
+      {% elif operation_state == 'BSH.Common.EnumType.OperationState.Run' and minutes > 0 %}
+        Finishes at {{ (now() + timedelta(minutes=minutes)).strftime("%H:%M") }}
+      {% elif operation_state == 'BSH.Common.EnumType.OperationState.Ready' %}
+        Ready
+      {% elif operation_state == 'BSH.Common.EnumType.OperationState.Pause' %}
+        Paused
+      {% else %}
+        Idle
+      {% endif %}
+    icon: mdi:dishwasher
+    icon_color: blue
+    layout: horizontal
+    card_mod:
+      style: |
+        ha-card {
+          border: none;
+          box-shadow: none;
+        }
+  
+  - type: custom:entity-progress-card
+    entity: sensor.dishwasher_program_progress
+    name: Program Progress
+    icon: null
+    bar_color: '#5E8FCC'
+    bar_height: 35
+    card_mod:
+      style: |
+        ha-card {
+          border: none;
+          box-shadow: none;
+          margin-top: -20px;
+          {% if states('sensor.dishwasher_program_progress') in ['unavailable', 'unknown', 'none'] %}
+            display: none;
+          {% endif %}
+        }
+  
+  - type: custom:mushroom-chips-card
+    chips:
+      - type: template
+        icon: >-
+          {% if is_state('binary_sensor.dishwasher_bsh_common_status_doorstate', 'on') %}
+            mdi:door-open
+          {% else %}
+            mdi:door-closed
+          {% endif %}
+        icon_color: >-
+          {% if is_state('binary_sensor.dishwasher_bsh_common_status_doorstate', 'on') %}
+            orange
+          {% else %}
+            grey
+          {% endif %}
+        content: >-
+          {% if is_state('binary_sensor.dishwasher_bsh_common_status_doorstate', 'on') %}
+            Open
+          {% else %}
+            Closed
+          {% endif %}
+      - type: template
+        icon: >-
+          {% set state_map = {
+            'BSH.Common.EnumType.OperationState.Run': 'Run',
+            'BSH.Common.EnumType.OperationState.Pause': 'Pause',
+            'BSH.Common.EnumType.OperationState.Ready': 'Ready',
+            'BSH.Common.EnumType.OperationState.Finished': 'Finished',
+            'BSH.Common.EnumType.OperationState.Inactive': 'Inactive',
+            'BSH.Common.EnumType.OperationState.DelayedStart': 'Delayed',
+            'BSH.Common.EnumType.OperationState.ActionRequired': 'Action Required',
+            'BSH.Common.EnumType.OperationState.Aborting': 'Aborting',
+            'BSH.Common.EnumType.OperationState.Error': 'Error'
+          } %}
+          {% set raw_state = states('sensor.dishwasher_operation_state') %}
+          {% set state = state_map.get(raw_state, raw_state) %}
+          {% if state == 'Run' %}
+            mdi:play-circle
+          {% elif state == 'Pause' %}
+            mdi:pause-circle
+          {% elif state == 'Ready' %}
+            mdi:check-circle
+          {% elif state == 'Finished' %}
+            mdi:flag-checkered
+          {% elif state == 'Delayed' %}
+            mdi:clock-outline
+          {% elif state == 'Action Required' %}
+            mdi:alert-circle
+          {% elif state == 'Error' %}
+            mdi:alert-circle-outline
+          {% else %}
+            mdi:power
+          {% endif %}
+        icon_color: >-
+          {% set state_map = {
+            'BSH.Common.EnumType.OperationState.Run': 'Run',
+            'BSH.Common.EnumType.OperationState.Pause': 'Pause',
+            'BSH.Common.EnumType.OperationState.Ready': 'Ready',
+            'BSH.Common.EnumType.OperationState.Finished': 'Finished',
+            'BSH.Common.EnumType.OperationState.Inactive': 'Inactive',
+            'BSH.Common.EnumType.OperationState.DelayedStart': 'Delayed',
+            'BSH.Common.EnumType.OperationState.ActionRequired': 'Action Required',
+            'BSH.Common.EnumType.OperationState.Aborting': 'Aborting',
+            'BSH.Common.EnumType.OperationState.Error': 'Error'
+          } %}
+          {% set raw_state = states('sensor.dishwasher_operation_state') %}
+          {% set state = state_map.get(raw_state, raw_state) %}
+          {% if state == 'Run' %}
+            green
+          {% elif state == 'Pause' %}
+            orange
+          {% elif state == 'Ready' %}
+            blue
+          {% elif state == 'Finished' %}
+            purple
+          {% elif state == 'Delayed' %}
+            cyan
+          {% elif state in ['Action Required', 'Error'] %}
+            red
+          {% else %}
+            grey
+          {% endif %}
+        content: >-
+          {% set state_map = {
+            'BSH.Common.EnumType.OperationState.Run': 'Run',
+            'BSH.Common.EnumType.OperationState.Pause': 'Pause',
+            'BSH.Common.EnumType.OperationState.Ready': 'Ready',
+            'BSH.Common.EnumType.OperationState.Finished': 'Finished',
+            'BSH.Common.EnumType.OperationState.Inactive': 'Inactive',
+            'BSH.Common.EnumType.OperationState.DelayedStart': 'Delayed',
+            'BSH.Common.EnumType.OperationState.ActionRequired': 'Action Required',
+            'BSH.Common.EnumType.OperationState.Aborting': 'Aborting',
+            'BSH.Common.EnumType.OperationState.Error': 'Error'
+          } %}
+          {% set raw_state = states('sensor.dishwasher_operation_state') %}
+          {{ state_map.get(raw_state, raw_state) }}
+        tap_action:
+          action: call-service
+          service: script.turn_on
+          target:
+            entity_id: script.dishwasher_smart_toggle
+        double_tap_action:
+          action: call-service
+          service: button.press
+          target:
+            entity_id: button.dishwasher_start_pause
+      - type: template
+        icon: mdi:power
+        icon_color: >-
+          {% if is_state('switch.dishwasher_power', 'on') %}
+            green
+          {% else %}
+            grey
+          {% endif %}
+        content: >-
+          {% if is_state('switch.dishwasher_power', 'on') %}
+            On
+          {% else %}
+            Off
+          {% endif %}
+        tap_action:
+          action: call-service
+          service: switch.toggle
+          target:
+            entity_id: switch.dishwasher_power
+      - type: template
+        content: >-
+          {% set progress = states("sensor.dishwasher_program_progress") %}
+          {% if progress in ['unavailable', 'unknown', 'none', ''] %}
+            0%
+          {% else %}
+            {{ progress }}%
+          {% endif %}
+    alignment: end
+    card_mod:
+      style: |
+        ha-card {
+          border: none;
+          box-shadow: none;
+          margin-top: -15px;
+        }
+card_mod:
+  style: |
+    ha-card {
+      padding: 10px;
+    }

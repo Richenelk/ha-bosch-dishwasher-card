@@ -1,0 +1,31 @@
+# Add this script to your Home Assistant configuration
+# Go to Settings > Automations & Scenes > Scripts > Add Script
+# Then paste this YAML in manual mode
+# This replaces both start_dishwasher_auto2 and the smart toggle
+
+alias: Dishwasher Smart Toggle
+sequence:
+  - choose:
+      # If running, stop it
+      - conditions:
+          - condition: state
+            entity_id: sensor.dishwasher_operation_state
+            state: BSH.Common.EnumType.OperationState.Run
+        sequence:
+          - service: button.press
+            target:
+              entity_id: button.dishwasher_stop
+    # Otherwise, start Auto2 program
+    default:
+      - service: select.select_option
+        target:
+          entity_id: select.dishwasher_programs
+        data:
+          option: Dishcare.Dishwasher.Program.Auto2
+      - delay:
+          milliseconds: 500
+      - service: button.press
+        target:
+          entity_id: button.dishwasher_start_pause
+mode: single
+icon: mdi:dishwasher-alert
