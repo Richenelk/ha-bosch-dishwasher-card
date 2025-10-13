@@ -1,0 +1,55 @@
+# Sonoff SNZB-01P Button Automation for Balcony Control
+# Single press: Toggle Hue balcony light
+# Double press: Toggle Shelly power switch
+# Long press: Turn everything off
+
+alias: Sonoff Button - Balcony Control
+description: Control balcony light and power with Sonoff button
+trigger:
+  - platform: state
+    entity_id: sensor.knop_balkon_action
+    to: "single"
+    id: single_press
+  - platform: state
+    entity_id: sensor.knop_balkon_action
+    to: "double"
+    id: double_press
+  - platform: state
+    entity_id: sensor.knop_balkon_action
+    to: "hold"
+    id: long_press
+condition: []
+action:
+  - choose:
+      # Single press: Toggle the Hue light (most common action)
+      - conditions:
+          - condition: trigger
+            id: single_press
+        sequence:
+          - service: light.toggle
+            target:
+              entity_id: light.balkon_licht
+      
+      # Double press: Toggle the Shelly switch (power control)
+      - conditions:
+          - condition: trigger
+            id: double_press
+        sequence:
+          - service: switch.toggle
+            target:
+              entity_id: switch.shelly_balkon
+      
+      # Long press: Turn everything off (convenience/safety)
+      - conditions:
+          - condition: trigger
+            id: long_press
+        sequence:
+          - service: light.turn_off
+            target:
+              entity_id: light.balkon_licht
+          - service: switch.turn_off
+            target:
+              entity_id: switch.shelly_balkon
+mode: single
+
+
